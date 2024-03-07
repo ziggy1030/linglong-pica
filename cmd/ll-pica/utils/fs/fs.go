@@ -15,7 +15,6 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"syscall"
 
@@ -503,38 +502,6 @@ func DesktopGroupname(desktopFile string) []string {
 		fmt.Printf("%s\n", data[name]["Exec"])
 	}
 	return groupNmaeList
-}
-
-// 转换Exec字段为玲珑格式
-func TransExecToLl(exec, appid string) string {
-	// 去掉/usr/bin/
-	if ret := strings.HasPrefix(exec, "/usr/bin"); ret {
-		exec = strings.Replace(exec, "/usr/bin/", "", -1)
-	}
-	// 去掉首尾空格
-	exec = strings.TrimSpace(exec)
-
-	// 去掉“”号
-	exec = strings.Replace(exec, "\"", "", -1)
-
-	// 添加 ll-cli run appid --exec
-	exec = "ll-cli run " + appid + " --exec " + "\"" + exec + "\""
-
-	// 查找占位符
-	findSign := func(exec string) string {
-		reg := regexp.MustCompile("%.")
-		if ret := reg.FindAllString(exec, -1); ret != nil {
-			return ret[0]
-		}
-		return ""
-	}
-
-	// 占位符放到引号外
-	if ret := findSign(exec); ret != "" {
-		exec = strings.Replace(exec, " "+ret, "", -1)
-		exec = exec + " " + ret
-	}
-	return exec
 }
 
 // 转换icon字段为玲珑格式

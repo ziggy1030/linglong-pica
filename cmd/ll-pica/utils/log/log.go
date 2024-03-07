@@ -42,15 +42,14 @@ func InitLog() *zap.SugaredLogger {
 		// go build -ldflags '-X ll-pica/utils/log.disableLogDebug=yes'
 		// fmt.Printf("disableLogDebug:%v", disableLogDebug)
 		if disableLogDebug != "" {
-			core := zapcore.NewCore(zapcore.NewJSONEncoder(cfg), os.Stdout, LogLevel)
+			core := zapcore.NewCore(zapcore.NewConsoleEncoder(cfg), os.Stdout, LogLevel)
 			logger = zap.New(core)
-			zap.ReplaceGlobals(logger)
 		} else {
 			LogLevel.SetLevel(zap.DebugLevel)
 			core := zapcore.NewCore(zapcore.NewConsoleEncoder(cfg), os.Stdout, LogLevel)
 			logger = zap.New(core, zap.AddStacktrace(LogLevel))
-			zap.ReplaceGlobals(logger)
 		}
+		zap.ReplaceGlobals(logger)
 
 	})
 	return logger.Sugar()

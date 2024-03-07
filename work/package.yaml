@@ -1,0 +1,13 @@
+
+runtime:
+  id: org.deepin.Runtime
+  version: 20.0.0
+  source: http://pools.uniontech.com/desktop-professional
+  distro_version: eagle
+  arch: amd64
+file:
+  deb:
+    - type: repo
+      id: deepin-movie
+      name: deepin-movie
+

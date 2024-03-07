@@ -1,16 +1,22 @@
 # ll-pica使用
+
 ## 安装
+
 ### 手动编译安装
+
 - 配置go环境
-参考 [配置go开发环境](https://blog.csdn.net/qq_41648043/article/details/117782776)
-或者：安装deb配置go环境。
+  参考 [配置go开发环境](https://blog.csdn.net/qq_41648043/article/details/117782776)
+  或者：安装deb配置go环境。
+
 ```
 sudo apt update
 sudo apt install golang-go golang-dlib-dev
 ```
+
 - 下载代码
-源码[linglong-pica](https://gitlabwh.uniontech.com/wuhan/v23/linglong/linglong-pica)
+  源码[linglong-pica](https://gitlabwh.uniontech.com/wuhan/v23/linglong/linglong-pica)
 - 安装release版本（未开启开发者模式，日志调试模式关闭。）
+
 ```
 git clone https://gitlabwh.uniontech.com/wuhan/v23/linglong/linglong-pica.git
 git checkout develop/snipe
@@ -20,6 +26,7 @@ sudo make install
 ```
 
 - 安装debug版本（开启开发者模式，日志调试模式开启。）
+
 ```
 git clone https://gitlabwh.uniontech.com/wuhan/v23/linglong/linglong-pica.git
 git checkout develop/snipe
@@ -29,12 +36,14 @@ sudo make install
 ```
 
 - 手动安装使用依赖包，当deb包安装时无需手动下载
-```
+
+```bash
 sudo apt update
-sudo apt install rsync linglong-builder
+sudo apt install linglong-builder
 ```
 
 ## 工具说明
+
 本工具目前提供deb包转换为玲珑包的能力。本工具需要提供对于被转换的目标的描述文件，通过描述文件
 可以配置转换所需的环境和资源，同时描述文件可以通过定制，干预转换过程。
 
@@ -43,19 +52,20 @@ sudo apt install rsync linglong-builder
 本工具当前主要在deepin/UOS系统上适配，deepin/UOS系统可以通过添加如下仓库
 
 - 仓库（社区版本）
-`deb https://community-packages.deepin.com/beige/ beige main commercial community`
-
+  `deb https://community-packages.deepin.com/beige/ beige main commercial community`
 - 仓库（专业版本）
   敬请期待。
-
 - 下载安装
+
 ```
 sudo apt update
 sudo apt install linglong-pica
 ```
 
 ## 工具使用
+
 ### 参数介绍
+
 ll-pica是本工具的命令行工具，主要包含转换环境的初始化、转包、上传玲珑包等功能。
 
 查看ll-pica帮助信息：
@@ -64,11 +74,11 @@ ll-pica是本工具的命令行工具，主要包含转换环境的初始化、�
 
 ll-pica帮助信息显示如下：
 
-```
-Convert the deb to linglong. For example:
+```bash
+Convert the deb to uab. For example:
 Simple:
-        ll-pica init -c runtime.yaml -w work-dir
-        ll-pica convert -c app.yaml -w work-dir
+        ll-pica init -c package -w work-dir
+        ll-pica convert -c package.yaml -w work-dir
         ll-pica push -i appid -w work-dir
         ll-pica help
 
@@ -77,97 +87,123 @@ Usage:
   ll-pica [command]
 
 Available Commands:
-  convert     Convert deb to linglong
+  convert     Convert deb to uab
   help        Help about any command
-  init        init sdk runtime env
+  init        init config template
   push        push app to repo
 
 Flags:
   -h, --help      help for ll-pica
   -v, --verbose   verbose output
 
-Use "ll-pica [command] --help" for more information about a command.
+Use "ll-pica [command] --help" for more information about a command
 ```
+
 ll-pica包含init、convert、push等命令参数
-- init runtime环境初始化。
+
+- init 初始化模板。
 - convert 转包操作。
 - push上传玲珑包操作。
+
 ### 环境初始化
+
 通过使用ll-pica的init命令，对转换所需的环境初进行始化。
 
-通过`ll-pica init --help`命令的查找帮助信息：
+通过 `ll-pica init --help`命令的查找帮助信息：
 
 ll-pica init 帮助信息显示如下：
-```
-init sdk runtime env with iso and runtime .
+
+```bash
+init config template.
 
 Usage:
   ll-pica init [flags]
 
 Flags:
-  -c, --config string    config
+  -c, --config string    config (default "package")
   -h, --help             help for init
   -w, --workdir string   work directory
 
 Global Flags:
   -v, --verbose   verbose output
 ```
+
 运行ll-pica init命令初始化runtime环境：
-`ll-pica init -c runtime.yaml  -w  workdir`
+`ll-pica init -c package -w workdir` 或 `ll-pica init`
 
 #### 参数说明
-config参数，-c, --config 指定配置环境的配置文件。
+
+config参数，-c, --config 指定配置的模板类型，目前只有 package，且为默认参数，可以不进行指定参数。
+
+workdir参数，-w, --workdir 工具的工作目录，下载 deb 包，解压文件，生成 linglong.yaml 都会在该工作目录下，可以不指定参数，默认路径为 `~/.cache/linglong-pica`。
 
 配置文件模板如下：
 
-``` 
----
-sdk:
-  base:
-    -
-      type: iso
-      ref: https://cdimage.uniontech.com/iso-v20/uniontechos-desktop-20-professional-1050-amd64.iso
-      hash: 18b7ccaa77abf96eaa5eee340838d9ccead006bfb9feba3fd3da30d58e292a17
-    - 
-      type: ostree
-      ref: linglong/org.deepin.Runtime/20.5.0/x86_64/runtime
-      hash:
-      remote: https://repo.linglong.space/repo
-  extra:
-    repo:
-      - "deb [trusted=yes] http://pools.uniontech.com/desktop-professional/ eagle main contrib non-free"
-    package:
-      - libicu63
-    command: |
-      apt update
-      # disable dde triggers
-      [[ -f /var/lib/dpkg/triggers/File ]] && ( sed -i 's|/opt/apps\s\S*$||' /var/lib/dpkg/triggers/File )
+```bash
+runtime:
+  type: ostree
+  id: org.deepin.Runtime
+  version: 23.0.0
+file:
+  deb:
+    - type: repo
+      id: com.baidu.baidunetdisk
+      name: baidunetdisk
+      ref: https://com-store-packages.uniontech.com/appstorev23/pool/appstore/c/com.baidu.baidunetdisk/com.baidu.baidunetdisk_4.17.7_amd64.deb
+      kind: app
+      hash: 
+
+    - type: repo
+      id: com.qq.wemeet
+      name: wemeet
+      ref: https://com-store-packages.uniontech.com/appstorev23/pool/appstore/c/com.qq.wemeet/com.qq.wemeet_3.19.0.401_amd64.deb
+      kind: app
+      hash: 
+
+    # - type: local
+    #   id: com.baidu.baidunetdisk
+    #   name: baidunetdisk
+    #   ref: /tmp/com.baidu.baidunetdisk_4.17.7_amd64.deb
+    #   kind: app
+    #   hash: 
+
 ```
 
 模板字段说明
-- base字段为必须配置，配置对应的iso下载地址与玲珑runtime仓库地址。
-- repo字段为必须配置，添加对应的仓库地址，支持多仓库添加。
-- package字段为备选配置，初始化环境添加额外包安装。
-- command字段为备选配置，需要对runtime环境进行的命令参数。
 
-工作目录参数，-w, --workdir 指定工作目录
+- runtime 字段为必须配置，需要运行玲珑应用的基础环境，指定包名和版本。
+
+  - type 字段必须配置，调用的方式 ostree。
+  - id 字段必须配置，包的唯一识别名称。
+  - version 字段必须配置，运行环境的版本。
+- file 字段为必须配置，需要转换的包文件类型。
+
+  - deb 字段为必须配置，表示 deb 包类型的包
+    - type 字段必须配置，获取包的方式，repo 指定 url 下载，local 指定本地路径。
+    - id 字段必须配置，对应玲珑包唯一识别名称。
+    - name 字段为必须配置，软件包名称。
+    - ref 字段被可选配置，如果指定了 type 为 repo ，就使用 url 地址，并且 ref 留空，使用 apt 自动查询源里可用的，如果指定 type 为 local, 就指定本地绝对路径。
+    - kind 字段必须配置，app 指应用软件包，lib 指开发库。
+    - hash 字段备选配置，如果为空不进行 hash 验证，否则进行验证。
 
 ### 转包
+
 通过使用 `ll-pica convert `命令进行转包。
 
 ll-pica convert帮助信息显示如下：
 
-```
-Convert the deb to linglong For example:
+```bash
+Convert the deb to uab For example:
 Convert:
         ll-pica init
-        ll-pica convert  --config config.yaml --workdir=/mnt/workdir
+        ll-pica convert  --config package.yaml --workdir /mnt/workdir --build true
 
 Usage:
   ll-pica convert [flags]
 
 Flags:
-  -c, --config string    config
+  -b, --build            build linglong
+  -c, --config string    config (default "package.yaml")
   -h, --help             help for convert
   -w, --workdir string   work directory
 
@@ -175,74 +211,19 @@ Global Flags:
   -v, --verbose   verbose output
 ```
 
-执行`ll-pica convert  -c config.yaml -w /mnt/workdir`命令进行转包：
+执行 `ll-pica convert  -c config.yaml -w /mnt/workdir`命令进行转包：
+
 #### 参数说明
-config参数，-c, --config 指定转包配置文件。
 
-配置文件模板如下：
+config参数，-c, --config 指需要转包的配置文件，默认参数为package.yaml，可以不进行指定参数。
 
-```
----
-info:
-  appid: org.deepin.calculator
-  name: deepin-calculator
-  version: 5.7.20.1
-  description: calculator for deepin os\n
-  kind: qt
-file:
-  deb:
-    - type: repo
-      ref: http://pools.uniontech.com/desktop-professional/pool/main/d/deepin-calculator/deepin-calculator_5.7.20-1_amd64.deb
-      name: deepin-calculator
-      hash:0ffd3af5467acf71320bd2e2267e989c5c4c41abc9a512242d4c37cd42777af5
-    - type: localfs
-      ref: /tmp/deepin-calculator2_5.7.20-1_amd64.deb
-      name: deepin-calculator2
-      hash: d38913817d727bca31c1295bae87c02ab129a57172561e3ec8caee6687e03796
-  add-package:
-    - libicu63
-chroot:
-  pre-command: |
-    uname -m
-  post-command: |
-    uname -a
-```
+workdir参数，-w, --workdir 工具的工作目录，下载 deb 包，解压文件，生成 linglong.yaml 都会在该工作目录下，可以不指定参数，默认路径为 `~/.cache/linglong-pica`。
 
-- info字段为必选，指定软件包信息。
-
-  appid字段为必选，该字段指定正确，才能保证数据获取正确。
-
-  name字段为必选，指定软件包名称，需要与deb包名称一致。
-
-  version字段为推荐使用，用于指定生成的linglong包的版本号，若未指定时，通过deb包版本号进行提取（若deb包版本号，规则与玲珑包规则不一致，则会出现版本号截断情况，因此推荐指定该字段）。
-
-  description字段为可选使用，用于描述玲珑包的软件信息，若被指定时，则使用指定的描述内容。若未指定时，通过转换的软件包提取描述信息。
-
-  kind字段为指定软件包类型，qt、python、qt等，以获取对应转包模板，保证转包正确性。
-
-- file字段为必选，指定软件包信息。
-
-  type字段为必选，deb包获取方式。可选，repo和localfs，其中repo标识表示deb包通过网络获取，localfs标识表示deb包通过本地文件系统获取。。
-
-  ref字段为必选，deb获取地址
-
-  name字段为必选，deb名称。
-
-  hash字段为必选，文件的hash校验值，采用sha256算法计算。
-
-  add-package字段为可选，需要额外安装的deb包。
-
-- chroot字段为可选，转包环境中需要额外执行的命令。
-
-  pre-command字段，在进行转包直接执行，用于修改和控制转换的环境。
-
-  post-command字段，在应用包解压后执行的命令，用于正对应用数据进行修改和处理。
-
-
-工作目录参数， -w, --workdir 指定工作目录。
+build参数，-b, --build 指需要进行玲珑包构建，默认参数为 false，如果为 true 生成 linglong.yaml 文件并进行构建导出 layer 文件。
 
 ### 上传玲珑包
-通过使用`ll-pica push`命令用于玲珑包上传仓库。
+
+通过使用 `ll-pica push`命令用于玲珑包上传仓库。
 
 查看ll-pica push帮助信息：
 
